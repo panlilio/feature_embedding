@@ -25,7 +25,7 @@ train_dataset = microglia_dataset(filenames=data_train, split='train')
 holdout_dataset = microglia_dataset(filenames=data_holdout, split='valid')
 
 #Initialize model
-model = AE(input_size=train_dataset[0].shape[-1:None:-1],depth=3,nfeats_final=64)
+model = AE(input_size=train_dataset[0].shape[-1:None:-1],depth=3,nfeats_final=8)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
