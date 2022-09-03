@@ -38,12 +38,13 @@ class AE(nn.Module):
         self.encode.append(nn.Flatten())
 
         final_encoder_conv_size = int(h * w * nfeats)
-
         self.encode.append(nn.Linear(final_encoder_conv_size,nfeats_final))
+
+        #####
 
         self.decode.append(nn.Linear(nfeats_final, final_encoder_conv_size))
         self.decode.append(nn.Unflatten(1,(nfeats,w,h)))
-        for i in range(depth-1,0,-1):
+        for i in range(depth-1,-1,-1):
             #Note the decoder here is constructed in reverse order
             if i==0:
                 in_channels = input_channels
@@ -52,15 +53,14 @@ class AE(nn.Module):
             out_channels = int(output_channels_init * 2 ** (i))
 
             self.decode.append(nn.Upsample(scale_factor=2))
-            self.decode.append(nn.Conv2d(out_channels,in_channels,(3,3),padding=1))
+            self.decode.append(nn.Conv2d(out_channels,out_channels,(3,3),padding=1))
+            self.decode.append(nn.InstanceNorm2d(out_channels))
             self.decode.append(activation)
-            self.decode.append(nn.Conv2d(in_channels,in_channels,(3,3),padding=1))
-            if i != 0:
-                self.decode.append(activation)
-                h, w = h * 2, w * 2
+            self.decode.append(nn.Conv2d(out_channels,in_channels,(3,3),padding=1))
+            self.decode.append(nn.InstanceNorm2d(in_channels))
+            self.decode.append(activation)
 
-        self.decode.append(nn.Upsample(scale_factor=2))
-        self.decode.append(nn.Conv2d(in_channels,input_channels,(3,3),padding=1))
+            h, w = h * 2, w * 2
 
         self.encode = nn.Sequential(*self.encode)
         self.decode = nn.Sequential(*self.decode)
